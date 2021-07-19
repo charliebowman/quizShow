@@ -11,7 +11,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <dirent.h>
+#include <time.h>
 
+#define TOTALFILES 100
+#define FILELENGTH 20
+#define QUESTIONSTOTAL 10
 
 void initialise_quiz(void) { 
 	system("clear"); // unix based system 
@@ -29,6 +34,18 @@ void question_prompt(void) {
 	printf("\nType a, b, c or d followed by enter: "); 
 }
 
+void correct_prompt(void) {
+	printf("\nCongratulations you got it correct !\n\n"); 
+	sleep(2); 
+	system("clear"); 
+}
+
+void incorrect_prompt(void) {
+	printf("\nThat is incorrect !\n\n"); 
+	sleep(2); 
+	system("clear"); 
+}
+
 void name_prompt(void) {
 	
 	int newPlayer = 1; 
@@ -38,19 +55,18 @@ void name_prompt(void) {
 	char playerFile[40]; 
 	FILE* player;	
 
-	printf("\nWhat is your first name ? \n");
+	printf("\nWhat is your first name? \n");
    	fgets(input, sizeof(input), stdin);
     sscanf(input, "%s", firstName); 
 	fflush(stdout); 
 	sleep(1); 
-	printf("\nWhat is your last name ? \n");
+	printf("\nWhat is your last name? \n");
 	fgets(input, sizeof(input), stdin);
 	sscanf(input, "%s", lastName);
 	
 	playerFile[0] = '\0'; 
 	strcpy(playerFile, firstName); 
     strcat(playerFile, lastName); 
-	strcat(playerFile, ".txt"); 
 
 	if (access(playerFile, F_OK) == 0) {
 		newPlayer = 0; 
@@ -65,9 +81,9 @@ void name_prompt(void) {
 	if (newPlayer) {
 		printf("\nEnjoy the quiz %s :) !", firstName);
 	} else {
-		printf("\nWelcome back %s !", firstName); 
+		printf("\nWelcome back %s!", firstName); 
 	}
-	fflush(stdout); 
+	fflush(stdout);  
 	sleep(3); 
 	system("clear"); // unix/linux	
 }
@@ -113,8 +129,8 @@ void open_file_question(int textNumber) {
 	}	
 } 
 
-void retrieve_question(void) {
-	FILE* question = fopen(".txt", "r"); 
+void retrieve_question(char* textfile) {
+	FILE* question = fopen(textfile, "r"); 
 	char buffer[256]; 
 	size_t count = 0; 
 	
@@ -131,7 +147,7 @@ void retrieve_question(void) {
 			if (count == 2)
 				break; 
 		}	
-		fclose(question)
+		fclose(question);
 	} else {
 		fprintf(stderr, "Could not open that question."); 
 		perror(0); 
@@ -139,11 +155,12 @@ void retrieve_question(void) {
 	}
 }
 
-char* retrieve_answer(void) {
-	FILE* answer = fopen(".txt", "r"); 
+char* retrieve_answer(char* textfile) {
+	FILE* answer = fopen(textfile, "r"); 
 	char* buffer; 
-	
-	buffer = malloc(sizeof(char)*2); 
+	int len = strlen(textfile); 
+
+	buffer = malloc(sizeof(char)  * (len + 1)); 
 	if (fseek(answer, -2, SEEK_END) != 0) {
 		perror("Failed to read"); 
 		fclose(answer); 
@@ -153,36 +170,66 @@ char* retrieve_answer(void) {
 	return buffer;  
 }
 
-char* obtain_textfiles(void) {
-	DIR* dir = opendir("."); 
-	if (dir == 0) {
-		return 1; 
-	}
-
-	struct dirent* entity; 
-	entity = readdir(dir); 
-	while(entity != 0) {
-		if (has_txt_extension(entity->d_name)) {
-			printf("%s\n", entity->d_name); 
-		}
-		entity = readdir(dir); 
-	}
-
-	closedir(dir); 
-	return 0; 
-}
-
-char* randomize_questions(void) {
-	char questions[10]; 
-		
-}
-
 bool has_txt_extension(char const* name) {
 	size_t len = strlen(name); 
 	return len > 4 && strcmp(name + len - 4, ".txt") == 0; 
 }
 
+size_t textfile_amount(void) {
+	DIR* dir = opendir("."); 
+	size_t len = 0; 
+	struct dirent* entity; 
+	entity = readdir(dir); 
+	while (entity != 0) {
+		if (has_txt_extension(entity->d_name)) {
+			len++; 
+		}
+		entity = readdir(dir); 
+	}
+	closedir(dir); 
+	return len; 
+}
 
-	
+char** obtain_textfiles(void) {
+	DIR* dir = opendir(".");
+	size_t count = 0; 
+	char** textfiles = malloc(sizeof(char*) * TOTALFILES);
 
+	for (size_t i = 0; i < TOTALFILES; i++) {
+		textfiles[i] = malloc(sizeof(char) * FILELENGTH);
+	} 
+
+	struct dirent* entity; 
+	entity = readdir(dir); 
+	while(entity != 0) {
+		if (has_txt_extension(entity->d_name)) {
+			textfiles[count] = entity->d_name;
+			count++; 
+		}
+		entity = readdir(dir); 
+	}
+
+	closedir(dir); 
+	return textfiles; 
+}
+
+char** randomize_questions(void) {
+	int i, j, k; 
+	size_t totalTextfiles = textfile_amount(); 
+	char temp[FILELENGTH]; 
+
+	char** questions = obtain_textfiles();
+	srand(time(NULL)); 
+
+	for (i = 0; i < totalTextfiles; i++) {
+		j = rand() % totalTextfiles; 
+		k = rand() % totalTextfiles; 
+		if (j != k) {
+			strcpy(temp, questions[j]); 
+			strcpy(questions[j], questions[k]); 
+			strcpy(questions[k], temp); 
+		}
+	}
+	return questions;
+} 		
 
