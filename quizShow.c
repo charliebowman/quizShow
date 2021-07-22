@@ -15,9 +15,7 @@
 
 int main(int argc, char** argv) {
   
-	char** questions;
-	questions = randomize_questions(); 	
-	
+	char** questions = randomize_questions(); 
 	initialise_quiz();
 	name_prompt();
 		

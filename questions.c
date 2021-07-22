@@ -99,36 +99,6 @@ void display_results(int result) {
     printf("\nPress y for yes OR n for no followed by enter: "); 	
 }
 
-void open_file_question(int textNumber) {
-
-	char textlist[10][15] = {
-		"question1.txt", 
-		"question2.txt", 
-		"question3.txt",
-		"question4.txt", 
-		"question5.txt", 
-		"question6.txt",
-		"question7.txt", 
-		"question8.txt",
-		"question9.txt", 
-		"question10.txt"
-	};
-
-	FILE* questionFiles = fopen(textlist[textNumber], "r"); 
-	char buffer[256]; 
-
-	if (questionFiles) {
-		while(fgets(buffer, sizeof(buffer), questionFiles)) {
-			fputs(buffer, stdout); 
-		}
-		fclose(questionFiles); 
-	} else {
-		fprintf(stderr, "Could not open that question."); 
-		perror(0); 
-		errno = 0;
-	}	
-} 
-
 void retrieve_question(char* textfile) {
 	FILE* question = fopen(textfile, "r"); 
 	char buffer[256]; 
