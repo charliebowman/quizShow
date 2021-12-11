@@ -26,12 +26,12 @@ void initialise_quiz(void) {
 	sleep(2); 
    	printf("Answer as many questions as you can correctly\n\n");
 	fflush(stdout); 
-    sleep(4); 	
+   	sleep(4); 	
 	system("clear"); 
 }
 
 void question_prompt(void) {
-	printf("\nType a, b, c or d followed by enter: "); 
+	printf("\nType A, B, C or D followed by enter: "); 
 }
 
 void correct_prompt(void) {
